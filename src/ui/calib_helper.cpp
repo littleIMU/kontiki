@@ -87,16 +87,21 @@ CalibrHelper::CalibrHelper(ros::NodeHandle& nh)
   scan4map_time_ = map_time_ + scan4map;
   double end_time = dataset_reader_->get_end_time();
 
+  // initialize a `SplitTrajectory`
   traj_manager_ = std::make_shared<TrajectoryManager>(
           map_time_, end_time, knot_distance, time_offset_padding);
 
+  // undistort scan based on the assumption of uniform motion
   scan_undistortion_ = std::make_shared<ScanUndistortion>(
           traj_manager_, dataset_reader_);
 
+  // lidar pose with ndt voxel size, the pose is optimized using `ndt`
   lidar_odom_ = std::make_shared<LiDAROdometry>(ndt_resolution_);
+
 
   rotation_initializer_ = std::make_shared<InertialInitializer>();
 
+  // association plane points between two continuous lidar frame
   surfel_association_ = std::make_shared<SurfelAssociation>(
           associated_radius_, plane_lambda_);
 }

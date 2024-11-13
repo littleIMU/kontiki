@@ -31,8 +31,9 @@ using namespace kontiki::trajectories;
 void TrajectoryManager::initialTrajTo(double max_time) {
   Eigen::Quaterniond q0 = Eigen::Quaterniond::Identity();
   Eigen::Vector3d p0(0,0,0);
-  traj_->R3Spline()->ExtendTo (max_time, p0);
-  traj_->SO3Spline()->ExtendTo(max_time, q0);
+  // max_time is the timestamp of the last scan in a group of scans
+  traj_->R3Spline()->ExtendTo (max_time, p0);  // 设置 原点(0,0,0)
+  traj_->SO3Spline()->ExtendTo(max_time, q0);  // 设置 原点旋转，quaternion::identity()
 }
 
 // wgh-- IMU数据入口
