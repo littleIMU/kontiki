@@ -166,10 +166,11 @@ void TrajectoryManager::addGyroscopeMeasurements(
   gyro_list_.clear();
 
   double weight = calib_param_manager->global_opt_gyro_weight;
-  const double min_time = estimator->trajectory()->MinTime();
-  const double max_time = estimator->trajectory()->MaxTime();
+  const double min_time = estimator->trajectory()->MinTime();  //  the start timestamp of the scans 
+  const double max_time = estimator->trajectory()->MaxTime();  //  the end timestamp of the scans
 
   for (const auto &v : imu_data_) {
+    
     if ( min_time > v.timestamp || max_time <= v.timestamp) {
       continue;
     }

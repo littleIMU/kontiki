@@ -2,6 +2,9 @@
 // Created by hannes on 2018-01-30.
 //
 
+// inherits from ParameterStore and provides an implementation for managing parameters that are already 
+// allocated in memory elsewhere. It stores an array of pointers to the parameter data.
+
 #ifndef ENTITY_PARAMSTORE_H
 #define ENTITY_PARAMSTORE_H
 
