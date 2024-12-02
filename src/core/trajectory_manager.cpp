@@ -64,7 +64,7 @@ void TrajectoryManager::initialSO3TrajWithGyro()
   // 设定初始时刻的位姿！(默认第一帧的位姿为世界位姿)
   estimator_SO3->AddMeasurement<OrientationMeasurement>(m_q0);
 
-  ceres::Solver::Summary summary = estimator_SO3->Solve(30, false);
+  ceres::Solver::Summary summary = estimator_SO3->Solve(30, false);  // 不显示过程信息在stdout
   std::cout << summary.BriefReport() << std::endl;
 }
 
@@ -91,8 +91,11 @@ void TrajectoryManager::trajInitFromSurfel(
   estimator_split = std::make_shared<SplitTrajEstimator>(traj_);
 
   // add constraints //添加所有约束。
+  // distance between gyro_measure and gyro_trajectory
   addGyroscopeMeasurements(estimator_split);
+  // distance between acce_measure and acce_trajectory
   addAccelerometerMeasurement(estimator_split);
+  // distance between spoint in curren scan and associated spoint in last scan w.r.t. global coordinate
   addSurfMeasurement(estimator_split, surfels_association);
 
   // addCallback(estimator_split);
@@ -170,13 +173,15 @@ void TrajectoryManager::addGyroscopeMeasurements(
   const double max_time = estimator->trajectory()->MaxTime();  //  the end timestamp of the scans
 
   for (const auto &v : imu_data_) {
-    
+
     if ( min_time > v.timestamp || max_time <= v.timestamp) {
       continue;
     }
-    auto mg = std::make_shared<GyroMeasurement>(imu_, v.timestamp, v.gyro, weight);
+    auto mg = std::make_shared<GyroMeasurement>(imu_, v.timestamp, v.gyro, weight);  // only assign value
     gyro_list_.push_back(mg);
-    estimator->template AddMeasurement<GyroMeasurement>(mg);
+    // what does it do: add imu data, build residual function between measure gyro and trajectory gyro
+    // because gyro_bias is locked by default, so the updated param is trajectory gyro.
+    estimator->template AddMeasurement<GyroMeasurement>(mg);   
   }
 }
 
@@ -217,6 +222,7 @@ void TrajectoryManager::addSurfMeasurement(
     double time = spoint.timestamp;
     size_t plane_id = spoint.plane_id;
 
+  
     auto msp = std::make_shared<SurfMeasurement> (lidar_, spoint.point,
                                                   closest_point_vec_.at(plane_id).data(), time, map_time_, 5.0, weight);
     surfelpoint_list_.push_back(msp);

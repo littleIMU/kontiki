@@ -87,9 +87,12 @@ CalibrHelper::CalibrHelper(ros::NodeHandle& nh)
   scan4map_time_ = map_time_ + scan4map;
   double end_time = dataset_reader_->get_end_time();
 
-  // initialize a `SplitTrajectory`
+  // initialize a `SplitTrajectory`, 
+  // map_time: timestamp of the first scan
+  // end_time: timestamp of the last scan
+  // knot_distance: 0.02s
   traj_manager_ = std::make_shared<TrajectoryManager>(
-          map_time_, end_time, knot_distance, time_offset_padding);
+          map_time_, end_time, knot_distance, time_offset_padding);  
 
   // undistort scan based on the assumption of uniform motion
   scan_undistortion_ = std::make_shared<ScanUndistortion>(
@@ -132,7 +135,10 @@ void CalibrHelper::Initialization()
   }
   // 把所有imu数据喂进来后，马上初始化SO3轨迹，初始化包括两个内容：
   // 1-把所有imu测量的角速度喂进去，2-设定初始时刻的位姿为identity(表示世界)。
-  traj_manager_->initialSO3TrajWithGyro();
+  // optimize using `estimator.Solve()`, gyro_bias is locked,
+  // update SO3_trajectory gyro and rotation. 
+  //? where trajectory_gyro and rotation come from? they have default values? and how the update extend to knot?
+  traj_manager_->initialSO3TrajWithGyro();  
 
   // 关于以下点云格式：TPointCloud是<PointXYZIT>点云，VPointCloud是<pcl::PointXYZI>点云。
   for(const TPointCloud& raw_scan: dataset_reader_->get_scan_data()) {

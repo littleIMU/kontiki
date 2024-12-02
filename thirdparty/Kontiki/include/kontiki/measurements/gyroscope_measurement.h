@@ -63,12 +63,12 @@ class GyroscopeMeasurement {
     template <typename T>
     bool operator()(T const* const* params, T* residual) const {
       size_t offset = 0;
-      const auto trajectory = entity::Map<TrajectoryModel, T>(&params[offset], trajectory_meta);
+      const auto trajectory = entity::Map<TrajectoryModel, T>(&params[offset], trajectory_meta); 
       offset += trajectory_meta.NumParameters();
       const auto imu = entity::Map<ImuModel, T>(&params[offset], imu_meta);
 
       Eigen::Map<Eigen::Matrix<T,3,1>> r(residual);
-      r = measurement.Error<TrajectoryModel, T>(imu, trajectory);
+      r = measurement.Error<TrajectoryModel, T>(imu, trajectory);  // error between 角速度测量值 and 对应时刻轨迹的角速度
       return true;
     }
 

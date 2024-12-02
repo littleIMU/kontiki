@@ -21,8 +21,13 @@ static const Eigen::Matrix4d M = (Eigen::Matrix4d() <<
     3. / 6., -6. / 6,  3. / 6., 0,
     -1. / 6.,   3./6., -3. / 6., 1./6.).finished();
 
+
+// Eigen uses a lazy evaluation technique to optimize memory usage and performance. 
+// This means that matrix operations are often deferred until they are actually needed. 
+// The finished() method triggers the evaluation and finalization of the matrix, 
+// ensuring that it is ready for subsequent operations.
 static const Eigen::Matrix4d M_cumul = (Eigen::Matrix4d() <<
-                                                          6. / 6.,  5. / 6.,  1. / 6., 0,
+    6. / 6.,  5. / 6.,  1. / 6., 0,
     0. / 6.,  3. / 6.,  3. / 6., 0,
     0. / 6., -3. / 6.,  3. / 6., 0,
     0. / 6.,  1. / 6., -2. / 6., 1. / 6.).finished();

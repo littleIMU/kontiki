@@ -43,9 +43,11 @@ class UniformSO3SplineSegmentView : public SplineSegmentView<T, SO3SplineControl
   // Inherit constructors
   using Base::SplineSegmentView;
 
+  //? what is `t` and 
+  // flag:  indicating which components of the trajectory to compute
   Result Evaluate(T t, int flags) const override {
     auto result = std::make_unique<TrajectoryEvaluation<T>>(flags);
-
+    // if flag = false, set position, velocity and acceleration to zero;
     if (result->needs.Position())
       result->position.setZero();
     if (result->needs.Velocity())
@@ -63,7 +65,7 @@ class UniformSO3SplineSegmentView : public SplineSegmentView<T, SO3SplineControl
 
     int i0;
     T u;
-    this->CalculateIndexAndInterpolationAmount(t, i0, u);
+    this->CalculateIndexAndInterpolationAmount(t, i0, u);  // divide integer and decimal part of time `t`
 
     const size_t N = this->NumKnots();
     if ((N < 4) || (i0 < 0) || (i0 > (N - 4))) {
@@ -72,12 +74,14 @@ class UniformSO3SplineSegmentView : public SplineSegmentView<T, SO3SplineControl
       throw std::range_error(ss.str());
     }
 
+    // basic function, regardless of control point type
     Vector4 U, dU;
     Vector4 B, dB;
     T u2 = ceres::pow(u, 2);
     T u3 = ceres::pow(u, 3);
     T dt_inv = T(1) / this->dt();
 
+    // U: cubic B-spline curve parameters
     U = Vector4(T(1), u, u2, u3);
     B = U.transpose() * M_cumul.cast<T>();
 
@@ -86,6 +90,7 @@ class UniformSO3SplineSegmentView : public SplineSegmentView<T, SO3SplineControl
       dB = dU.transpose() * M_cumul.cast<T>();
     }
 
+    // control points and interpolation, here, control point type is quaternion
     Quaternion &q = result->orientation;
 
     // These parts are updated when computing the derivative
@@ -99,8 +104,12 @@ class UniformSO3SplineSegmentView : public SplineSegmentView<T, SO3SplineControl
       // Orientation
       QuaternionMap qa = this->ControlPoint(i - 1);
       QuaternionMap qb = this->ControlPoint(i);
-      Quaternion omega = math::logq(qa.conjugate() * qb);
-      Quaternion eomegab = math::expq(Quaternion(omega.coeffs() * B(i-i0)));
+      // quaternions can be thought of as points on the 3-sphere, 
+      // which is the exponential map of the 3D space of pure quaternions.
+      Quaternion omega = math::logq(qa.conjugate() * qb); // to li algebra: the 3D space of pure quaternions
+      // first interpolation coeffs() which is `rotation_angle / 2` with B[i-i0] basic function,
+      // then turn the coeffs into exponential map;
+      Quaternion eomegab = math::expq(Quaternion(omega.coeffs() * B(i-i0))); 
       q *= eomegab;
 
       // Angular velocity
@@ -118,7 +127,7 @@ class UniformSO3SplineSegmentView : public SplineSegmentView<T, SO3SplineControl
 
     if (result->needs.AngularVelocity()) {
       Quaternion dq = this->ControlPoint(i0) * Quaternion(dq_parts[0].coeffs() + dq_parts[1].coeffs() + dq_parts[2].coeffs());
-      result->angular_velocity = math::angular_velocity(q, dq);
+      result->angular_velocity = math::angular_velocity(q, dq);  // q, dq
     }
 
     return result;

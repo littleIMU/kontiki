@@ -53,6 +53,8 @@ Eigen::Quaternion <T> logq(const Eigen::Quaternion <T> &q) {
 
   Eigen::Quaternion<T> out;
   out.w() = T(0);
+  //  In this context, the vector part of the logarithm quaternion (q.vec() * k) does indeed 
+  // represent the axis of rotation scaled by half the rotation angle.
   out.vec() = q.vec() * k;
 
   return out;

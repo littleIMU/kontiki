@@ -156,6 +156,7 @@ class VelodyneCorrection {
                    TPointCloud &outPointCloud) const 
   {
     VPointCloud temp_pc;
+    // a common way to convert a ROS message of type sensor_msgs::PointCloud2 to a PCL point cloud. 
     pcl::fromROSMsg(*lidarMsg, temp_pc);
 
     outPointCloud.clear();
